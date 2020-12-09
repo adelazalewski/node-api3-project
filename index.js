@@ -7,7 +7,7 @@ const server = express();
 
 //custom logger middlware
 function logger(req, res, next) {
-    console.log(`[${new Date().toISOString()}] ${req.method} to ${req.url} from ${req.get('Origin')} `);
+    console.log(`[${new Date().toISOString()}] ${req.ip} ${req.method} to ${req.url} from ${req.get('Origin')} `);
     next();
 }
  //parses json data takes incoming json data and parses it into req.body
