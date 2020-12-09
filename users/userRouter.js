@@ -1,47 +1,101 @@
 const express = require('express');
+const users = require("./userDb");
+const posts = require("../posts/postDb");
 
 const router = express.Router();
 
-router.post('/', (req, res) => {
+router.post('/users',validateUser, (req, res) => {
+  
+  users.insert({
+    name: req.body.name
+  }).then((user) => {
+    res.status(201).json(user)
+  })
+  .catch(error => {
+    console.log(error);
+    next(error)
+  })
+});
+
+router.post('/users/:id/posts',validateUserId,validatePost, (req, res) => {
+ posts.insert({
+   user_id: req.params.id,
+   text: req.body.text
+ })
+ .then(post => {
+   res.status(201).json(post)
+ })
+ .catch(err => {
+   console.log(err);
+   next(err);
+ })
+
+});
+
+router.get('/users', async (req, res) => {
+  const data = await users.get();
+  res.json(data)
+});
+
+router.get('/users/:id', (req, res) => {
   // do your magic!
 });
 
-router.post('/:id/posts', (req, res) => {
+router.get('/users/:id/posts', (req, res) => {
   // do your magic!
 });
 
-router.get('/', (req, res) => {
+router.delete('/users/:id', (req, res) => {
   // do your magic!
 });
 
-router.get('/:id', (req, res) => {
-  // do your magic!
-});
-
-router.get('/:id/posts', (req, res) => {
-  // do your magic!
-});
-
-router.delete('/:id', (req, res) => {
-  // do your magic!
-});
-
-router.put('/:id', (req, res) => {
+router.put('/users/:id', (req, res) => {
   // do your magic!
 });
 
 //custom middleware
 
 function validateUserId(req, res, next) {
-  // do your magic!
+  users.getById(req.params.id)
+  .then(user => {
+    if(user){
+      //set a value to the request so it can be accessed later in the middleware stack
+      req.user = user
+      next()
+    }else{
+      res.status(404).json({
+        message: "user not found"
+      })
+    }
+  })
+  .catch(err => next(err))
 }
 
 function validateUser(req, res, next) {
-  // do your magic!
+  if(!req.body.name) {
+     res.status(400).json({
+       message: "missing user's name"
+     })
+  }else{
+    next()
+  }
 }
 
 function validatePost(req, res, next) {
-  // do your magic!
+  if(!req.body){
+    res.status(400).json({
+      message: "missing post data"
+    })
+  }else if(!req.body.text){
+    res.status(400).json({
+      message: "missing required text field"
+    })
+  }else{
+    next()
+  }
 }
 
-module.exports = router;
+module.exports = {
+  router,
+  validatePost
+}
